@@ -7,10 +7,8 @@ export const VAGAS = [
     lojas: [
       'Morumbi Shopping',
       'Ibirapuera Shopping',
-      'Shopping Villa Lobos',
       'Shopping Pátio Higienópolis',
       'Shopping Eldorado',
-      'Shopping Frei Caneca',
       'Shopping Pátio Paulista',
     ],
   },
@@ -18,13 +16,12 @@ export const VAGAS = [
     id: 'vendedor_fotografico',
     nome: 'Vendedor Serviços Fotográficos',
     lojas: [
-      'Ibirapuera Shopping',
       'Morumbi Shopping',
-      'Shopping Iguatemi São Paulo',
+      'Ibirapuera Shopping',
       'Shopping Pátio Higienópolis',
-      'Shopping Villa Lobos',
       'Shopping Eldorado',
       'Shopping Pátio Paulista',
+      'Shopping Iguatemi São Paulo',
     ],
   },
 ];

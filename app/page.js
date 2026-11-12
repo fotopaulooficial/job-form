@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { VAGAS } from './vagas';
+import { useState } from "react";
+import { VAGAS } from "./vagas";
 import Image from "next/image";
 import logo from "./assets/imgs/logo.png";
 
 const MAX_MB = 4;
 
 export default function Page() {
-  const [status, setStatus] = useState('idle'); // idle | sending | ok | error
-  const [message, setMessage] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [status, setStatus] = useState("idle"); // idle | sending | ok | error
+  const [message, setMessage] = useState("");
+  const [fileName, setFileName] = useState("");
   const [vagasAtivas, setVagasAtivas] = useState({}); // { [vagaId]: boolean }
   const [lojas, setLojas] = useState({}); // { [vagaId]: string[] }
 
@@ -31,15 +31,15 @@ export default function Page() {
 
   function onFileChange(e) {
     const file = e.target.files?.[0];
-    if (!file) return setFileName('');
+    if (!file) return setFileName("");
     if (file.size > MAX_MB * 1024 * 1024) {
       setMessage(`O arquivo excede ${MAX_MB} MB.`);
-      setStatus('error');
-      e.target.value = '';
-      return setFileName('');
+      setStatus("error");
+      e.target.value = "";
+      return setFileName("");
     }
-    setStatus('idle');
-    setMessage('');
+    setStatus("idle");
+    setMessage("");
     setFileName(file.name);
   }
 
@@ -48,36 +48,38 @@ export default function Page() {
 
     const selecionadas = VAGAS.filter((v) => vagasAtivas[v.id]);
     if (selecionadas.length === 0) {
-      setStatus('error');
-      setMessage('Selecione pelo menos uma vaga de interesse.');
+      setStatus("error");
+      setMessage("Selecione pelo menos uma vaga de interesse.");
       return;
     }
     const semLoja = selecionadas.find((v) => !(lojas[v.id] || []).length);
     if (semLoja) {
-      setStatus('error');
-      setMessage(`Selecione pelo menos uma loja para a vaga "${semLoja.nome}".`);
+      setStatus("error");
+      setMessage(
+        `Selecione pelo menos uma loja para a vaga "${semLoja.nome}".`,
+      );
       return;
     }
 
-    setStatus('sending');
-    setMessage('');
+    setStatus("sending");
+    setMessage("");
 
     const form = e.currentTarget;
     try {
-      const res = await fetch('/api/candidatura', {
-        method: 'POST',
+      const res = await fetch("/api/candidatura", {
+        method: "POST",
         body: new FormData(form),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Não foi possível enviar.');
-      setStatus('ok');
-      setMessage('Candidatura enviada com sucesso! Entraremos em contato.');
+      if (!res.ok) throw new Error(data.error || "Não foi possível enviar.");
+      setStatus("ok");
+      setMessage("Candidatura enviada com sucesso! Entraremos em contato.");
       form.reset();
-      setFileName('');
+      setFileName("");
       setVagasAtivas({});
       setLojas({});
     } catch (err) {
-      setStatus('error');
+      setStatus("error");
       setMessage(err.message);
     }
   }
@@ -94,8 +96,9 @@ export default function Page() {
           <h1 className="title">Trabalhe conosco</h1>
 
           <p className="standfirst">
-            Buscamos pessoas para nossas lojas nos shoppings de São Paulo. Envie sua
-            candidatura e anexe seu currículo.
+            Venha fazer parte da nossa equipe! Estamos em busca de novos
+            talentos para atuar em nossas lojas nos principais shoppings de São
+            Paulo. Candidate-se e faça parte do nosso time!
           </p>
 
           <ul className="roles">
@@ -119,17 +122,35 @@ export default function Page() {
 
               <label>
                 Nome completo
-                <input name="nome" type="text" required maxLength={120} autoComplete="name" />
+                <input
+                  name="nome"
+                  type="text"
+                  required
+                  maxLength={120}
+                  autoComplete="name"
+                />
               </label>
 
               <div className="row">
                 <label>
                   E-mail
-                  <input name="email" type="email" required maxLength={160} autoComplete="email" />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    maxLength={160}
+                    autoComplete="email"
+                  />
                 </label>
                 <label>
                   Telefone / WhatsApp
-                  <input name="telefone" type="tel" required maxLength={30} autoComplete="tel" />
+                  <input
+                    name="telefone"
+                    type="tel"
+                    required
+                    maxLength={30}
+                    autoComplete="tel"
+                  />
                 </label>
               </div>
             </fieldset>
@@ -141,7 +162,10 @@ export default function Page() {
               </p>
 
               {VAGAS.map((v) => (
-                <div className={`vaga${vagasAtivas[v.id] ? ' on' : ''}`} key={v.id}>
+                <div
+                  className={`vaga${vagasAtivas[v.id] ? " on" : ""}`}
+                  key={v.id}
+                >
                   <label className="vaga-head">
                     <input
                       type="checkbox"
@@ -163,7 +187,9 @@ export default function Page() {
                             name={`lojas_${v.id}`}
                             value={loja}
                             checked={(lojas[v.id] || []).includes(loja)}
-                            onChange={(e) => toggleLoja(v.id, loja, e.target.checked)}
+                            onChange={(e) =>
+                              toggleLoja(v.id, loja, e.target.checked)
+                            }
                           />
                           <span>{loja}</span>
                         </label>
@@ -205,12 +231,15 @@ export default function Page() {
               aria-hidden="true"
             />
 
-            <button type="submit" disabled={status === 'sending'}>
-              {status === 'sending' ? 'Enviando…' : 'Enviar candidatura'}
+            <button type="submit" disabled={status === "sending"}>
+              {status === "sending" ? "Enviando…" : "Enviar candidatura"}
             </button>
 
             {message && (
-              <p className={`msg ${status === 'ok' ? 'ok' : 'err'}`} role="status">
+              <p
+                className={`msg ${status === "ok" ? "ok" : "err"}`}
+                role="status"
+              >
                 {message}
               </p>
             )}
