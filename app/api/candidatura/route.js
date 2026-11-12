@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { VAGAS } from '../../vagas';
 
 export const runtime = 'nodejs';
 
@@ -48,12 +49,30 @@ export async function POST(request) {
     const nome = String(form.get('nome') || '').trim();
     const email = String(form.get('email') || '').trim();
     const telefone = String(form.get('telefone') || '').trim();
-    const vaga = String(form.get('vaga') || '').trim();
     const mensagem = String(form.get('mensagem') || '').trim();
     const file = form.get('curriculo');
 
-    if (!nome || !email || !telefone || !vaga) {
+    // Vagas marcadas (checkbox name="vaga", value=<id>) e as lojas de cada uma
+    // (checkbox name="lojas_<id>", value=<loja>).
+    const vagaIds = form
+      .getAll('vaga')
+      .map(String)
+      .filter((id) => VAGAS.some((v) => v.id === id));
+    const candidaturas = vagaIds.map((id) => {
+      const vaga = VAGAS.find((v) => v.id === id);
+      const lojas = form
+        .getAll(`lojas_${id}`)
+        .map(String)
+        .filter((loja) => vaga.lojas.includes(loja));
+      return { nome: vaga.nome, lojas };
+    });
+    const vaga = candidaturas.map((c) => c.nome).join(', ');
+
+    if (!nome || !email || !telefone || candidaturas.length === 0) {
       return Response.json({ error: 'Preencha todos os campos obrigatórios.' }, { status: 400 });
+    }
+    if (candidaturas.some((c) => c.lojas.length === 0)) {
+      return Response.json({ error: 'Selecione pelo menos uma loja para cada vaga escolhida.' }, { status: 400 });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json({ error: 'E-mail inválido.' }, { status: 400 });
@@ -80,15 +99,24 @@ export async function POST(request) {
     const { error } = await resend.emails.send({
       from,
       to: to.split(',').map((s) => s.trim()),
+      cc: 'andersen.cypriano@fotopaulo.com.br',
       replyTo: email, // ao responder, vai direto para o candidato
       subject: `Candidatura: ${vaga} — ${nome}`.slice(0, 200),
       html: `
         <div style="font-family:Arial,sans-serif;font-size:15px;color:#222">
           <h2 style="margin:0 0 12px">Nova candidatura recebida</h2>
-          <p><strong>Vaga:</strong> ${esc(vaga)}</p>
           <p><strong>Nome:</strong> ${esc(nome)}</p>
           <p><strong>E-mail:</strong> ${esc(email)}</p>
           <p><strong>Telefone:</strong> ${esc(telefone)}</p>
+          <p><strong>Vagas e lojas de interesse:</strong></p>
+          <ul style="margin:0 0 12px;padding-left:20px">
+            ${candidaturas
+              .map(
+                (c) =>
+                  `<li><strong>${esc(c.nome)}</strong>: ${esc(c.lojas.join(', '))}</li>`
+              )
+              .join('')}
+          </ul>
           ${
             mensagem
               ? `<p><strong>Mensagem:</strong><br>${esc(mensagem).replace(/\n/g, '<br>')}</p>`
